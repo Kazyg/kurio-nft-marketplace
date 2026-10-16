@@ -222,6 +222,10 @@ for (const width of [390, 1440])
       await expect(
         page.getByRole('heading', { name: 'Finalizar compra', exact: true }),
       ).toBeVisible()
+      await expect(page.getByLabel('Rede', { exact: true })).toBeVisible()
+      await page
+        .getByLabel('Rede', { exact: true })
+        .selectOption(before.items[0].nft.network)
       if ((page.viewportSize()?.width || 1440) < 768) {
         await expect(page.getByTestId('checkout-mobile-total')).toBeVisible()
         await page.locator('#checkout-wallet-details > summary').click()
@@ -243,6 +247,10 @@ for (const width of [390, 1440])
       )
       expect(await mockRequest(page, '/orders')).toEqual([])
       await page.reload()
+      await expect(page.getByLabel('Rede', { exact: true })).toBeVisible()
+      await page
+        .getByLabel('Rede', { exact: true })
+        .selectOption(before.items[0].nft.network)
       if ((page.viewportSize()?.width || 1440) < 768) {
         await expect(page.getByTestId('checkout-mobile-total')).toBeVisible()
         await page.locator('#checkout-wallet-details > summary').click()
@@ -302,6 +310,10 @@ test('sessão expirada no carrinho retoma pagamento após login sem perder itens
   await expect(page).toHaveURL(/\/login\?redirect=%2Fcheckout/)
   await login(page)
   await expect(page).toHaveURL(/\/checkout$/)
+  await expect(page.getByLabel('Rede', { exact: true })).toBeVisible()
+  await page
+    .getByLabel('Rede', { exact: true })
+    .selectOption(before.items[0].nft.network)
   if ((page.viewportSize()?.width || 1440) < 768) {
     await expect(page.getByTestId('checkout-mobile-total')).toBeVisible()
     await page.locator('#checkout-wallet-details > summary').click()

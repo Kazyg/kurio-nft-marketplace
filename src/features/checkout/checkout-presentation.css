@@ -563,3 +563,27 @@
     flex-wrap: wrap;
   }
 }
+.checkout-network-selection {
+  min-width: 0;
+  margin: 16px 0 24px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.checkout-network-selection p,
+.checkout-network-selection ul {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.checkout-network-selection ul {
+  padding-left: 18px;
+  overflow-wrap: anywhere;
+}
+.checkout-network-selection > div {
+  margin-top: 16px;
+  font-size: 12px;
+}
+.checkout-network-selection strong {
+  color: var(--muted-foreground);
+}

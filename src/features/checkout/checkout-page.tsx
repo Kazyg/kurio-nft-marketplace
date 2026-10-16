@@ -222,8 +222,9 @@ function CheckoutContent({
     preparing || purchase.phase === 'sending' || purchase.phase === 'recovering'
   const order = purchase.order.data
   const displayed =
-    (quote.data?.network === network ? quote.data : null) ||
-    (reviewed?.network === network ? reviewed : null)
+    network &&
+    ((quote.data?.network === network ? quote.data : null) ||
+      (reviewed?.network === network ? reviewed : null))
   const reviewStale =
     !!reviewed &&
     (!quote.data ||
@@ -356,7 +357,17 @@ function CheckoutContent({
               <Link to="/">Continuar explorando</Link>
             </Button>
             {order.status !== 'pending' && (
-              <Button variant="outline" onClick={purchase.clear}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  purchase.clear()
+                  setChosenNetwork(undefined)
+                  setWalletId('')
+                  setChosenProvider(undefined)
+                  setConnection('disconnected')
+                  resetReview()
+                }}
+              >
                 Iniciar nova compra
               </Button>
             )}
@@ -450,29 +461,67 @@ function CheckoutContent({
     resetReview()
   }
   const networkSelection = (
-    <label>
-      Rede
-      <select
-        aria-label="Rede"
-        value={network || ''}
-        disabled={busy}
-        onChange={(event) => {
-          const next = event.target.value as Network
-          setChosenNetwork(next)
-          setWalletId('')
-          setChosenProvider(undefined)
-          setConnection('disconnected')
-          resetReview()
-        }}
-      >
-        {!network && <option value="">Selecione a rede da compra</option>}
-        {cartNetworks.map((value) => (
-          <option key={value} value={value}>
-            {networkLabels[value]}
-          </option>
-        ))}
-      </select>
-    </label>
+    <section
+      className="checkout-network-selection"
+      aria-label="Rede e itens da compra"
+    >
+      <label>
+        Rede
+        <select
+          aria-label="Rede"
+          value={network || ''}
+          disabled={busy}
+          onChange={(event) => {
+            const next = event.target.value as Network
+            setChosenNetwork(next)
+            setWalletId('')
+            setChosenProvider(undefined)
+            setConnection('disconnected')
+            resetReview()
+          }}
+        >
+          {!network && <option value="">Selecione a rede da compra</option>}
+          {cartNetworks.map((value) => (
+            <option key={value} value={value}>
+              {networkLabels[value]}
+            </option>
+          ))}
+        </select>
+      </label>
+      {!network ? (
+        <p role="status">Selecione a rede desta compra.</p>
+      ) : (
+        <>
+          <div aria-label="Itens desta compra">
+            <strong>Comprar em {networkLabels[network]}</strong>
+            <ul>
+              {cart.items
+                .filter((item) => item.nft.network === network)
+                .map((item) => (
+                  <li key={item.id}>
+                    {item.quantity} × {item.nft.name}
+                  </li>
+                ))}
+            </ul>
+          </div>
+          {cartNetworks.length > 1 && (
+            <div aria-label="Itens que permanecem no carrinho">
+              <strong>Permanecem no carrinho</strong>
+              <ul>
+                {cart.items
+                  .filter((item) => item.nft.network !== network)
+                  .map((item) => (
+                    <li key={item.id}>
+                      {item.quantity} × {item.nft.name} ·{' '}
+                      {networkLabels[item.nft.network]}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   )
   const walletSelection = (
     <div className="checkout-wallet-selection">
@@ -520,7 +569,6 @@ function CheckoutContent({
           Nome de usuário
           <input value={user.username} readOnly />
         </label>
-        {networkSelection}
         <label>
           Nome do perfil
           <input value={wallet?.profileName || user.name} readOnly />
@@ -652,14 +700,18 @@ function CheckoutContent({
           </button>
         </div>
       )}
-      <p role="status" className="checkout-quote-status">
-        {quote.isFetching
-          ? 'Atualizando cotação…'
-          : quote.isError
-            ? 'Cotação indisponível'
-            : 'Cotação atualizada'}
-      </p>
-      {quote.isError && <p role="alert">{apiErrorMessage(quote.error)}</p>}
+      {network && (
+        <p role="status" className="checkout-quote-status">
+          {quote.isFetching
+            ? 'Atualizando cotação…'
+            : quote.isError
+              ? 'Cotação indisponível'
+              : 'Cotação atualizada'}
+        </p>
+      )}
+      {network && quote.isError && (
+        <p role="alert">{apiErrorMessage(quote.error)}</p>
+      )}
       {displayed && <FinancialSummary snapshot={displayed.snapshot} />}
     </div>
   )
@@ -669,6 +721,7 @@ function CheckoutContent({
       <CheckoutPresentation
         onChangeWallet={() => setOtherWallet(true)}
         collectorFields={collectorFields}
+        networkSelection={networkSelection}
         walletSelection={null}
         walletCards={
           <CheckoutWalletCards
@@ -747,19 +800,9 @@ function CheckoutContent({
         }
         notices={
           <>
-            {cartNetworks.length > 1 && (
-              <p role="status">
-                Seu carrinho contém{' '}
-                {cartNetworks.map((value) => networkLabels[value]).join(', ')}.
-                Escolha uma rede para comprar seus itens. Os NFTs das outras
-                redes permanecerão no carrinho.
-              </p>
-            )}
-            {!wallet && (
+            {network && !wallet && (
               <p role="alert">
-                {network
-                  ? `Cadastre uma carteira ${networkLabels[network]} para continuar.`
-                  : 'Selecione primeiro a rede que deseja comprar.'}{' '}
+                Cadastre uma carteira {networkLabels[network]} para continuar.{' '}
                 <Link to="/wallets">Gerenciar carteiras</Link>
               </p>
             )}

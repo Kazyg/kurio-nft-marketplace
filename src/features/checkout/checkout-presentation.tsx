@@ -7,6 +7,7 @@ const asset = (name: string) => `/assets/figma/checkout-${name}.svg`
 export interface CheckoutPresentationProps {
   collectorFields: ReactNode
   walletSelection: ReactNode
+  networkSelection?: ReactNode
   walletCards?: ReactNode
   providerOptions: ReactNode
   summary: ReactNode
@@ -22,6 +23,7 @@ export interface CheckoutPresentationProps {
 export function CheckoutPresentation({
   collectorFields,
   walletSelection,
+  networkSelection,
   walletCards,
   providerOptions,
   summary,
@@ -77,6 +79,7 @@ export function CheckoutPresentation({
               Trocar carteira
             </button>
           </div>
+          {networkSelection}
           {walletCards}
           {providerOptions}
           {notices}
@@ -114,6 +117,8 @@ export function CheckoutPresentation({
             aria-label="Resumo do checkout"
           >
             {summary}
+            {networkSelection}
+            {walletCards}
             {walletSelection}
             {providerOptions}
             {notices}

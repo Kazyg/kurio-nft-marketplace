@@ -75,6 +75,109 @@ async function buy(page: Page) {
   return (await response.json()) as Order
 }
 
+test('três redes permitem compras separadas e seleção visível no desktop e mobile', async ({
+  page,
+}) => {
+  test.setTimeout(90_000)
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 896 })
+    await setup(page, ['ethereum', 'polygon', 'solana'])
+    const original = await request<Cart>(page, '/cart')
+    await page.goto('/checkout')
+    const selector = page.getByLabel('Rede', { exact: true })
+    await expect(selector).toBeVisible()
+    await expect(selector).toBeEnabled()
+    await expect(selector).toHaveValue('')
+    await expect(selector.locator('option')).toHaveCount(4)
+    expect(
+      await selector.evaluate((element) => !!element.closest('details')),
+    ).toBe(false)
+    await expect(page.getByTestId('checkout-mobile-total')).toHaveCount(0)
+    await expect(
+      page.getByRole('button', { name: 'Confirmar compra', exact: true }),
+    ).toBeDisabled()
+    const wallets = await request<Wallet[]>(page, '/wallets')
+    const keys = new Set<string>()
+    for (const [index, network] of (
+      ['ethereum', 'polygon', 'solana'] as const
+    ).entries()) {
+      if (network !== 'solana') await selector.selectOption(network)
+      await expect(selector).toHaveValue(network)
+      const selected = original.items.filter(
+        (item) => item.nft.network === network,
+      )
+      const scope = page.getByLabel('Itens desta compra', { exact: true })
+      for (const item of selected)
+        await expect(scope).toContainText(item.nft.name)
+      const remaining = original.items.filter(
+        (item) =>
+          (['ethereum', 'polygon', 'solana'] as const).indexOf(
+            item.nft.network,
+          ) > index,
+      )
+      if (remaining.length) {
+        for (const item of remaining)
+          await expect(
+            page.getByLabel('Itens que permanecem no carrinho'),
+          ).toContainText(item.nft.name)
+      } else
+        await expect(
+          page.getByLabel('Itens que permanecem no carrinho'),
+        ).toHaveCount(0)
+      await expect(
+        page.getByLabel('Endereço da carteira', { exact: true }),
+      ).toHaveValue(
+        wallets.find((wallet) => wallet.network === network)!.address,
+      )
+      if (width === 390) {
+        await expect(
+          page.locator('#checkout-wallet-details'),
+        ).not.toHaveAttribute('open', '')
+      }
+      await expect(
+        page
+          .getByRole('group', { name: 'Carteiras cadastradas' })
+          .getByRole('button'),
+      ).toHaveCount(
+        wallets.filter((wallet) => wallet.network === network).length,
+      )
+      expect(await request<Order[]>(page, '/orders')).toHaveLength(index)
+      const order = await buy(page)
+      expect(order.network).toBe(network)
+      expect(order.snapshot.lines.map((line) => line.nftId)).toEqual(
+        selected.map((item) => item.nft.id),
+      )
+      expect(order.wallet.network).toBe(network)
+      keys.add(
+        await page.evaluate(
+          () =>
+            JSON.parse(localStorage.getItem('kurio:purchase:ana')!)
+              .key as string,
+        ),
+      )
+      expect(
+        (await request<Cart>(page, '/cart')).items.map((item) => item.nft.id),
+      ).toEqual(remaining.map((item) => item.nft.id))
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true)
+      await page
+        .getByRole('button', { name: 'Fechar recibo', exact: true })
+        .click()
+      if (remaining.length)
+        await page
+          .getByRole('button', { name: 'Iniciar nova compra', exact: true })
+          .click()
+    }
+    expect(keys.size).toBe(3)
+    const orders = await request<Order[]>(page, '/orders')
+    expect(orders).toHaveLength(3)
+    expect(new Set(orders.map((order) => order.id)).size).toBe(3)
+  }
+})
+
 for (const network of ['ethereum', 'polygon'] as const)
   test(`checkout ${network} escolhe carteira compatível e chega ao recibo`, async ({
     page,
@@ -115,7 +218,7 @@ test('carrinho multirrede exige escolha explícita e preserva os demais NFTs', a
   await page.goto('/checkout')
   await expect(page.getByLabel('Rede', { exact: true })).toHaveValue('')
   await expect(
-    page.getByText(/Seu carrinho contém Ethereum, Polygon/),
+    page.getByText('Selecione a rede desta compra.', { exact: true }),
   ).toBeVisible()
   await expect(
     page.getByRole('button', {
@@ -275,7 +378,7 @@ for (const networks of [['polygon'], ['ethereum', 'polygon']] as Network[][])
     await page.goto('/checkout')
     if (networks.length > 1)
       await expect(
-        page.getByText(/Seu carrinho contém Ethereum, Polygon/),
+        page.getByText('Selecione a rede desta compra.', { exact: true }),
       ).toBeVisible()
     else
       await expect(
