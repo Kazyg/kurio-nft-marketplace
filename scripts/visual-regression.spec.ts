@@ -75,7 +75,7 @@ for (const screen of Object.keys(paths) as (keyof typeof paths)[])
     if (screen === 'checkout')
       await expect(
         page.getByRole('button', {
-          name: 'Confirmar compra: revisar valores',
+          name: 'Confirmar compra',
           exact: true,
         }),
       ).toBeVisible()

@@ -88,11 +88,11 @@ for (const width of [390, 768, 1440])
         details: page.locator('.product-information'),
         cart: page.getByTestId('quote-status'),
         checkout: page.getByRole('button', {
-          name: 'Confirmar compra: revisar valores',
+          name: 'Confirmar compra',
           exact: true,
         }),
         confirmation: page.getByRole('button', {
-          name: 'Confirmar compra: revisar valores',
+          name: 'Confirmar compra',
           exact: true,
         }),
         login: page.getByLabel('E-mail', { exact: true }),
@@ -117,13 +117,6 @@ for (const width of [390, 768, 1440])
             exact: true,
           })
           .click()
-        await page
-          .getByRole('button', {
-            name: 'Confirmar compra: revisar valores',
-            exact: true,
-          })
-          .click()
-        await page.getByRole('checkbox', { name: /Revisei as edições/ }).check()
         await page
           .getByRole('button', { name: 'Confirmar compra', exact: true })
           .click()

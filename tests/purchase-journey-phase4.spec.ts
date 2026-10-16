@@ -37,13 +37,10 @@ test('catálogo → detalhe → carrinho → login → checkout → recibo sem c
   await expect(page).toHaveURL(/\/checkout$/)
   await page.getByRole('radio', { name: 'MetaMask', exact: true }).click()
   await page.getByRole('button', { name: 'Conectar carteira' }).click()
-  await page
-    .getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
-      exact: true,
-    })
-    .click()
-  await page.getByRole('checkbox').check()
+  await expect(
+    page.getByRole('heading', { name: 'Revise antes de enviar' }),
+  ).toHaveCount(0)
+  await expect(page.getByRole('checkbox')).toHaveCount(0)
   await page
     .getByRole('button', { name: 'Confirmar compra', exact: true })
     .click()

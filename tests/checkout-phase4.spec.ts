@@ -53,16 +53,6 @@ async function connect(page: Page) {
 }
 async function review(page: Page) {
   await connect(page)
-  await page
-    .getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
-      exact: true,
-    })
-    .click()
-  await expect(
-    page.getByRole('heading', { name: 'Revise antes de enviar' }),
-  ).toBeVisible()
-  await page.getByRole('checkbox').check()
 }
 async function buy(page: Page) {
   await review(page)
@@ -85,6 +75,9 @@ test('checkout completo confirma e mostra recibo persistido, pedidos e foco do m
   await expect(page.getByLabel('E-mail', { exact: true })).toHaveValue(
     'ana@kurio.demo',
   )
+  await expect(
+    page.getByRole('heading', { name: 'Revise antes de enviar' }),
+  ).toHaveCount(0)
   await buy(page)
   const dialog = page.getByRole('dialog', { name: 'Compra confirmada' })
   await expect(dialog).toBeVisible()
@@ -99,9 +92,10 @@ test('checkout completo confirma e mostra recibo persistido, pedidos e foco do m
   await expect(artwork).toBeVisible()
   expect((await artwork.boundingBox())!.height).toBeCloseTo(80, 0)
   await expect(dialog).toContainText(nft.name)
-  await expect(dialog).toContainText('Referência da transação')
+  await expect(dialog).toContainText('ID da transação')
   const orders = await mockRequest<Order[]>(page, '/orders')
   expect(orders).toHaveLength(1)
+  await expect(dialog).toContainText(orders[0].transactionReference)
   await expect(dialog.getByTestId('purchase-total')).toHaveText(
     `${orders[0].snapshot.totalEth} ETH`,
   )
@@ -167,7 +161,7 @@ test('conexão recusada, conexão permitida, desconexão e troca de carteira/red
   await connect(page)
   await expect(
     page.getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
+      name: 'Confirmar compra',
       exact: true,
     }),
   ).toBeEnabled()
@@ -182,7 +176,7 @@ test('campos validados e revisão obrigatória impedem envio antecipado', async 
   await page.getByLabel('E-mail', { exact: true }).fill('invalid')
   await page
     .getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
+      name: 'Confirmar compra',
       exact: true,
     })
     .click()
@@ -329,7 +323,7 @@ test('preço atualizado pelo domínio exige nova revisão e aceite', async ({
   })
   await expect(
     page.getByText(
-      'Os preços ou a disponibilidade podem ter mudado. Atualize a revisão antes de confirmar.',
+      'Os preços ou a disponibilidade podem ter mudado. Atualize os valores antes de confirmar.',
     ),
   ).toBeVisible()
   await expect(
@@ -339,13 +333,17 @@ test('preço atualizado pelo domínio exige nova revisão e aceite', async ({
     }),
   ).toBeDisabled()
   await page
-    .getByRole('button', { name: 'Atualizar revisão', exact: true })
+    .getByRole('button', { name: 'Atualizar valores', exact: true })
     .click()
   await expect(
     page.getByText('As condições mudaram', { exact: true }),
   ).toBeVisible()
-  await expect(page.getByRole('checkbox')).not.toBeChecked()
-  await page.getByRole('checkbox').check()
+  await expect(
+    page.getByRole('button', { name: 'Confirmar compra', exact: true }),
+  ).toBeDisabled()
+  await page
+    .getByRole('button', { name: 'Aceitar valores atualizados', exact: true })
+    .click()
   await page
     .getByRole('button', { name: 'Confirmar compra', exact: true })
     .click()
@@ -508,3 +506,171 @@ for (const width of [390, 768, 1440]) {
     ).toBeFocused()
   })
 }
+
+test('duas compras consecutivas abrem pagamentos independentes sem reutilizar recibo', async ({
+  page,
+}) => {
+  const { nft } = await prepare(page)
+  await buy(page)
+  await expect(
+    page.getByRole('dialog', { name: 'Compra confirmada' }),
+  ).toBeVisible()
+  const first = (await mockRequest<Order[]>(page, '/orders'))[0]
+  const firstAttempt = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  expect((await mockRequest<Cart>(page, '/cart')).items).toHaveLength(0)
+  const catalog = await mockRequest<NftList>(page, '/nfts?pageSize=24')
+  const nextNft = catalog.items.find(
+    (item) =>
+      item.id !== nft.id &&
+      item.network === 'ethereum' &&
+      item.editions.some((value) => value.available >= 2),
+  )!
+  const nextEdition = nextNft.editions.find((value) => value.available >= 2)!
+  await mockRequest<Cart>(page, '/cart/items', 'POST', {
+    nftId: nextNft.id,
+    editionId: nextEdition.id,
+    quantity: 2,
+  })
+  await page.goto('/cart')
+  await page
+    .getByRole('link', { name: 'Finalizar compra', exact: true })
+    .click()
+  await expect(
+    page.getByLabel('Nome de exibição', { exact: true }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('dialog', { name: 'Compra confirmada' }),
+  ).toHaveCount(0)
+  expect(await mockRequest<Order[]>(page, '/orders')).toHaveLength(1)
+  expect((await mockRequest<Cart>(page, '/cart')).items[0].quantity).toBe(2)
+  await page.reload()
+  await expect(
+    page.getByLabel('Nome de exibição', { exact: true }),
+  ).toBeVisible()
+  expect(await mockRequest<Order[]>(page, '/orders')).toHaveLength(1)
+  await buy(page)
+  await expect(
+    page.getByRole('dialog', { name: 'Compra confirmada' }),
+  ).toBeVisible()
+  const secondAttempt = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  expect(secondAttempt.key).not.toBe(firstAttempt.key)
+  const orders = await mockRequest<Order[]>(page, '/orders')
+  expect(orders).toHaveLength(2)
+  expect(new Set(orders.map((order) => order.id)).size).toBe(2)
+  expect(orders.some((order) => order.id === first.id)).toBe(true)
+  expect(
+    orders.find((order) => order.id !== first.id)!.snapshot.lines[0].quantity,
+  ).toBe(2)
+  expect((await mockRequest<Cart>(page, '/cart')).items).toHaveLength(0)
+  await page.goto('/orders')
+  for (const order of orders)
+    await expect(page.getByText(order.id, { exact: true })).toBeVisible()
+})
+
+test('nova entrada pelo carrinho preserva pedido pendente e sua chave original', async ({
+  page,
+}) => {
+  await prepare(page)
+  await scenario(page, {
+    orderOutcome: 'pending-confirmed',
+    orderResolutionMs: 60000,
+  })
+  await buy(page)
+  await expect(
+    page.getByRole('heading', { name: 'Pedido pendente' }),
+  ).toBeVisible()
+  const before = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  await page.goto('/cart')
+  await page
+    .getByRole('link', { name: 'Finalizar compra', exact: true })
+    .click()
+  await expect(
+    page.getByRole('heading', { name: 'Pedido pendente' }),
+  ).toBeVisible()
+  const after = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  expect(after).toEqual(before)
+  expect(await mockRequest<Order[]>(page, '/orders')).toHaveLength(1)
+  expect((await mockRequest<Cart>(page, '/cart')).items).toHaveLength(1)
+})
+
+test('nova entrada pelo carrinho preserva resultado desconhecido e recupera a mesma chave', async ({
+  page,
+}) => {
+  await prepare(page)
+  await scenario(page, { orderOutcome: 'connection-error' })
+  await buy(page)
+  await expect(
+    page.getByRole('heading', { name: 'Resultado desconhecido' }),
+  ).toBeVisible()
+  const before = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  await page.goto('/cart')
+  await page
+    .getByRole('link', { name: 'Finalizar compra', exact: true })
+    .click()
+  await expect(
+    page.getByRole('heading', { name: 'Resultado desconhecido' }),
+  ).toBeVisible()
+  expect(await mockRequest<Order[]>(page, '/orders')).toHaveLength(0)
+  await scenario(page, { orderOutcome: 'confirmed' })
+  await page
+    .getByRole('button', { name: 'Recuperar ou repetir mesma tentativa' })
+    .click()
+  await expect(
+    page.getByRole('dialog', { name: 'Compra confirmada' }),
+  ).toBeVisible()
+  const after = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  expect(after.key).toBe(before.key)
+  expect(after.payload).toEqual(before.payload)
+  expect(await mockRequest<Order[]>(page, '/orders')).toHaveLength(1)
+  expect((await mockRequest<Cart>(page, '/cart')).items).toHaveLength(0)
+})
+
+test('tentativa recusada permite outra compra explícita com nova chave', async ({
+  page,
+}) => {
+  await prepare(page)
+  await scenario(page, { orderOutcome: 'declined' })
+  await buy(page)
+  await expect(
+    page.getByRole('heading', { name: 'Pedido recusado' }),
+  ).toBeVisible()
+  const before = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  await page.goto('/cart')
+  await page
+    .getByRole('link', { name: 'Finalizar compra', exact: true })
+    .click()
+  await expect(
+    page.getByLabel('Nome de exibição', { exact: true }),
+  ).toBeVisible()
+  expect(await mockRequest<Order[]>(page, '/orders')).toHaveLength(1)
+  await scenario(page, { orderOutcome: 'confirmed' })
+  await buy(page)
+  await expect(
+    page.getByRole('dialog', { name: 'Compra confirmada' }),
+  ).toBeVisible()
+  const after = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('kurio:purchase:ana')!),
+  )
+  expect(after.key).not.toBe(before.key)
+  const orders = await mockRequest<Order[]>(page, '/orders')
+  expect(orders).toHaveLength(2)
+  expect(orders.map((order) => order.status).sort()).toEqual([
+    'confirmed',
+    'declined',
+  ])
+  expect((await mockRequest<Cart>(page, '/cart')).items).toHaveLength(0)
+})

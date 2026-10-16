@@ -1,4 +1,3 @@
-import { AccountSidebar } from '@/shared/ui/account-sidebar'
 import { useLocation, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQueries } from '@tanstack/react-query'
 import { AuthPage } from '@/features/auth/auth-page'
@@ -43,33 +42,30 @@ export function FavoritesRoute() {
   })
   const failed = queries.find((query) => query.isError)
   return (
-    <section className="account-shell account-collection">
-      <AccountSidebar active="/favorites" />
-      <div className="account-main">
-        <h1>Seus favoritos</h1>
-        {favorites.isPending || queries.some((query) => query.isPending) ? (
-          <CatalogSkeleton />
-        ) : favorites.isError ? (
-          <NetworkError
-            error={favorites.error}
-            retry={() => void favorites.refetch()}
-          />
-        ) : failed ? (
-          <NetworkError
-            error={failed.error}
-            retry={() => void failed.refetch()}
-          />
-        ) : favorites.data?.nftIds.length ? (
-          <div className="nft-grid account-nft-grid">
-            {queries.map(
-              (query) =>
-                query.data && <NftCard key={query.data.id} nft={query.data} />,
-            )}
-          </div>
-        ) : (
-          <p>Você ainda não adicionou NFTs aos favoritos.</p>
-        )}
-      </div>
-    </section>
+    <>
+      <h1>Seus favoritos</h1>
+      {favorites.isPending || queries.some((query) => query.isPending) ? (
+        <CatalogSkeleton />
+      ) : favorites.isError ? (
+        <NetworkError
+          error={favorites.error}
+          retry={() => void favorites.refetch()}
+        />
+      ) : failed ? (
+        <NetworkError
+          error={failed.error}
+          retry={() => void failed.refetch()}
+        />
+      ) : favorites.data?.nftIds.length ? (
+        <div className="nft-grid account-nft-grid">
+          {queries.map(
+            (query) =>
+              query.data && <NftCard key={query.data.id} nft={query.data} />,
+          )}
+        </div>
+      ) : (
+        <p>Você ainda não adicionou NFTs aos favoritos.</p>
+      )}
+    </>
   )
 }

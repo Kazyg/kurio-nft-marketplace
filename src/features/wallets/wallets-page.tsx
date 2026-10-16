@@ -12,7 +12,6 @@ import { apiErrorMessage } from '@/shared/api/marketplace'
 import type { Wallet, WalletInput, User } from '@/shared/contracts/marketplace'
 import { Button } from '@/shared/ui/button'
 import { NetworkError } from '@/shared/ui/network-feedback'
-import { AccountSidebar } from '@/shared/ui/account-sidebar'
 import './wallets.css'
 
 const networks = {
@@ -294,165 +293,158 @@ export function WalletsPage() {
     }
   }
   return (
-    <section className="account-shell wallets-page">
-      <AccountSidebar active="/wallets" />
-      <div className="account-main">
-        {query.isPending ? (
-          <div
-            role="status"
-            aria-busy="true"
-            className="wallet-loading shimmer"
-          >
-            Carregando carteiras…
-          </div>
-        ) : !query.data ? (
-          <NetworkError
-            title="Não foi possível carregar as carteiras"
-            error={query.error}
-            retry={() => void query.refetch()}
-          />
-        ) : (
-          <>
-            <header className="wallet-heading">
-              <div>
-                <h1>Carteira principal</h1>
-                <button
-                  type="button"
-                  aria-label="Adicionar carteira"
-                  onClick={() => {
-                    setEditing('new')
-                    setSameAsMain(false)
-                    setNotice('')
-                  }}
-                >
-                  Adicionar
-                </button>
-              </div>
-              <p>
-                Estas carteiras ficam disponíveis no pagamento e para receber
-                NFTs comprados.
-              </p>
-            </header>
-            {notice && (
-              <p className="wallet-notice" role="status">
-                {notice}
-              </p>
-            )}
-            {update.isError && (
-              <div role="alert">
-                <p>{apiErrorMessage(update.error)}</p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    void query.refetch()
-                    update.reset()
-                  }}
-                >
-                  Atualizar carteiras
-                </Button>
-              </div>
-            )}
-            <fieldset className="wallet-primary" disabled={!!editing}>
+    <>
+      {query.isPending ? (
+        <div role="status" aria-busy="true" className="wallet-loading shimmer">
+          Carregando carteiras…
+        </div>
+      ) : !query.data ? (
+        <NetworkError
+          title="Não foi possível carregar as carteiras"
+          error={query.error}
+          retry={() => void query.refetch()}
+        />
+      ) : (
+        <>
+          <header className="wallet-heading">
+            <div>
+              <h1>Carteira principal</h1>
+              <button
+                type="button"
+                aria-label="Adicionar carteira"
+                onClick={() => {
+                  setEditing('new')
+                  setSameAsMain(false)
+                  setNotice('')
+                }}
+              >
+                Adicionar
+              </button>
+            </div>
+            <p>
+              Estas carteiras ficam disponíveis no pagamento e para receber NFTs
+              comprados.
+            </p>
+          </header>
+          {notice && (
+            <p className="wallet-notice" role="status">
+              {notice}
+            </p>
+          )}
+          {update.isError && (
+            <div role="alert">
+              <p>{apiErrorMessage(update.error)}</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  void query.refetch()
+                  update.reset()
+                }}
+              >
+                Atualizar carteiras
+              </Button>
+            </div>
+          )}
+          <fieldset className="wallet-primary" disabled={!!editing}>
+            <WalletForm
+              key={main ? `${main.id}-${main.version}` : 'first'}
+              wallet={main}
+              active={!editing}
+              first={!wallets.length}
+              user={profile.data}
+              close={close}
+            />
+          </fieldset>
+          {editing && editing !== 'new' && (
+            <section className="wallet-edit">
+              <h2>Editar carteira</h2>
               <WalletForm
-                key={main ? `${main.id}-${main.version}` : 'first'}
-                wallet={main}
-                active={!editing}
+                key={editing.id}
+                wallet={editing}
+                first={false}
+                user={profile.data}
+                close={close}
+              />
+            </section>
+          )}
+          <section className="wallet-secondary">
+            <header>
+              <h2>Carteira secundária</h2>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={sameAsMain}
+                  disabled={!main}
+                  onChange={(event) => {
+                    setSameAsMain(event.target.checked)
+                    if (event.target.checked) setEditing(null)
+                  }}
+                />
+                Igual à carteira principal
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing('new')
+                  setSameAsMain(false)
+                  setNotice('')
+                }}
+              >
+                Adicionar
+              </button>
+            </header>
+            {sameAsMain ? (
+              <p>
+                A carteira principal será utilizada. Nenhum cadastro adicional
+                foi criado.
+              </p>
+            ) : editing === 'new' ? (
+              <WalletForm
                 first={!wallets.length}
                 user={profile.data}
                 close={close}
               />
-            </fieldset>
-            {editing && editing !== 'new' && (
-              <section className="wallet-edit">
-                <h2>Editar carteira</h2>
-                <WalletForm
-                  key={editing.id}
-                  wallet={editing}
-                  first={false}
-                  user={profile.data}
-                  close={close}
-                />
-              </section>
-            )}
-            <section className="wallet-secondary">
-              <header>
-                <h2>Carteira secundária</h2>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={sameAsMain}
-                    disabled={!main}
-                    onChange={(event) => {
-                      setSameAsMain(event.target.checked)
-                      if (event.target.checked) setEditing(null)
-                    }}
-                  />
-                  Igual à carteira principal
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditing('new')
-                    setSameAsMain(false)
-                    setNotice('')
-                  }}
-                >
-                  Adicionar
-                </button>
-              </header>
-              {sameAsMain ? (
+            ) : secondary.length === 0 ? (
+              <p>Você ainda não adicionou uma carteira secundária.</p>
+            ) : null}
+          </section>
+          <div className="wallet-saved-list">
+            {wallets.map((wallet) => (
+              <article key={wallet.id}>
+                <h3>
+                  <strong>{wallet.label}</strong>
+                  <span>{wallet.isDefault ? 'Principal' : 'Secundária'}</span>
+                </h3>
                 <p>
-                  A carteira principal será utilizada. Nenhum cadastro adicional
-                  foi criado.
+                  {networks[wallet.network]} • {providers[wallet.provider]}
                 </p>
-              ) : editing === 'new' ? (
-                <WalletForm
-                  first={!wallets.length}
-                  user={profile.data}
-                  close={close}
-                />
-              ) : secondary.length === 0 ? (
-                <p>Você ainda não adicionou uma carteira secundária.</p>
-              ) : null}
-            </section>
-            <div className="wallet-saved-list">
-              {wallets.map((wallet) => (
-                <article key={wallet.id}>
-                  <h3>
-                    <strong>{wallet.label}</strong>
-                    <span>{wallet.isDefault ? 'Principal' : 'Secundária'}</span>
-                  </h3>
-                  <p>
-                    {networks[wallet.network]} • {providers[wallet.provider]}
-                  </p>
-                  <p className="wallet-address">{wallet.address}</p>
-                  <div className="wallet-actions">
+                <p className="wallet-address">{wallet.address}</p>
+                <div className="wallet-actions">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditing(wallet)
+                      setNotice('')
+                    }}
+                    disabled={editing !== null}
+                  >
+                    Editar {wallet.label}
+                  </Button>
+                  {!wallet.isDefault && (
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setEditing(wallet)
-                        setNotice('')
-                      }}
-                      disabled={editing !== null}
+                      disabled={update.isPending}
+                      onClick={() => void setDefault(wallet)}
                     >
-                      Editar {wallet.label}
+                      Tornar principal {wallet.label}
                     </Button>
-                    {!wallet.isDefault && (
-                      <Button
-                        variant="outline"
-                        disabled={update.isPending}
-                        onClick={() => void setDefault(wallet)}
-                      >
-                        Tornar principal {wallet.label}
-                      </Button>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+    </>
   )
 }

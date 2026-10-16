@@ -9,6 +9,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, ShoppingBag } from 'lucide-react'
 import {
   useCart,
+  useSession,
   useQuote,
   useRemoveCartItem,
   useUpdateCartItem,
@@ -20,6 +21,7 @@ import { NetworkError } from '@/shared/ui/network-feedback'
 import { useDesktop } from '@/shared/lib/use-desktop'
 import { nftImageProps } from '@/shared/lib/nft-image'
 import { CartRelated } from './cart-related'
+import { requestNewCheckout } from '@/features/checkout/use-purchase-attempt'
 import './cart.css'
 
 export function CartPage() {
@@ -87,6 +89,9 @@ export function CartPage() {
 }
 
 function CartContent({ cart }: { cart: Cart }) {
+  const session = useSession()
+  const userId = session.data?.user?.id
+  const checkoutLabel = userId ? 'Finalizar compra' : 'Conectar e finalizar'
   const summary = useRef<HTMLElement>(null)
   const [summaryHeight, setSummaryHeight] = useState(420)
   useEffect(() => {
@@ -379,11 +384,18 @@ function CartContent({ cart }: { cart: Cart }) {
         )}
         {current ? (
           <Button asChild className="cart-checkout">
-            <Link to="/checkout">Conectar e finalizar</Link>
+            <Link
+              to="/checkout"
+              onClick={() => {
+                if (userId) requestNewCheckout(userId)
+              }}
+            >
+              {checkoutLabel}
+            </Link>
           </Button>
         ) : (
           <Button className="cart-checkout" disabled>
-            Conectar e finalizar
+            {checkoutLabel}
           </Button>
         )}
         <Link to="/" className="cart-continue">

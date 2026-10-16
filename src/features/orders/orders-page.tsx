@@ -1,4 +1,3 @@
-import { AccountSidebar } from '@/shared/ui/account-sidebar'
 import { Link } from '@tanstack/react-router'
 import type { FinancialSnapshot, Order } from '@/shared/contracts/marketplace'
 import { useOrder, useOrders } from '@/shared/api/order-hooks'
@@ -109,7 +108,7 @@ export function OrderReceipt({ order }: { order: Order }) {
         </div>
         {order.status === 'confirmed' && (
           <div>
-            <dt>Referência da transação</dt>
+            <dt>ID da transação</dt>
             <dd title={order.transactionReference}>
               {order.transactionReference}
             </dd>
@@ -120,53 +119,142 @@ export function OrderReceipt({ order }: { order: Order }) {
     </div>
   )
 }
+export function OrderConfirmationReceipt({ order }: { order: Order }) {
+  const snapshot = order.receipt?.snapshot || order.snapshot
+  return (
+    <div className="purchase-receipt receipt-modal-content">
+      <header className="receipt-confirmation-header">
+        <div className="receipt-thank-you" aria-hidden="true">
+          <img src="/assets/figma/confirmation-thank-you.svg" alt="" />
+        </div>
+        <h2 className="sr-only">Pedido confirmado</h2>
+        <p>Seus NFTs agora estão na sua carteira.</p>
+      </header>
+      <dl className="receipt-confirmation-metadata">
+        <div>
+          <dt>ID da transação</dt>
+          <dd title={order.transactionReference}>
+            {order.transactionReference}
+          </dd>
+        </div>
+        <div>
+          <dt>Data</dt>
+          <dd>{new Date(order.createdAt).toLocaleString('pt-BR')}</dd>
+        </div>
+        <div>
+          <dt>Total</dt>
+          <dd>{snapshot.totalEth} ETH</dd>
+        </div>
+        <div>
+          <dt>Carteira</dt>
+          <dd title={`${order.wallet.label} · ${order.wallet.address}`}>
+            {order.wallet.label} · {order.wallet.address}
+          </dd>
+        </div>
+      </dl>
+      <section
+        className="receipt-confirmation-details"
+        aria-label="Detalhes da transação"
+      >
+        <h3>Detalhes da transação</h3>
+        <p className="receipt-order-reference">Pedido {order.id}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>NFT</th>
+              <th>Edições</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {snapshot.lines.map((line) => (
+              <tr key={`${line.nftId}:${line.editionId}`}>
+                <td>
+                  <img {...nftImageProps(line.image, '70px')} alt="" />
+                  <span>
+                    {line.name}
+                    <small>{line.editionLabel}</small>
+                  </span>
+                </td>
+                <td>{line.quantity}</td>
+                <td>{line.totalEth} ETH</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <dl className="receipt-confirmation-totals">
+          <div>
+            <dt>Subtotal</dt>
+            <dd>{snapshot.subtotalEth} ETH</dd>
+          </div>
+          <div>
+            <dt>
+              Desconto{snapshot.coupon ? ` · ${snapshot.coupon.code}` : ''}
+            </dt>
+            <dd>{snapshot.discountEth} ETH</dd>
+          </div>
+          <div>
+            <dt>Taxa de rede</dt>
+            <dd>{snapshot.feeEth} ETH</dd>
+          </div>
+          <div>
+            <dt>Total final</dt>
+            <dd data-testid="purchase-total">{snapshot.totalEth} ETH</dd>
+          </div>
+        </dl>
+        <Button asChild>
+          <Link to="/orders/$orderId" params={{ orderId: order.id }}>
+            Consultar transação simulada
+          </Link>
+        </Button>
+      </section>
+    </div>
+  )
+}
 export function OrdersPage() {
   const orders = useOrders()
   return (
-    <section className="account-shell account-collection account-purchases">
-      <AccountSidebar active="/orders" />
-      <div className="account-main">
-        <div className="purchase-heading">
-          <span>CONTA DO COLECIONADOR</span>
-          <h1>Meus pedidos</h1>
-          <p>Acompanhe suas compras e seus recibos.</p>
-        </div>
-        {orders.isPending ? (
-          <p role="status">Carregando pedidos…</p>
-        ) : orders.isError ? (
-          <NetworkError
-            title="Não foi possível carregar os pedidos"
-            error={orders.error}
-            retry={() => void orders.refetch()}
-          />
-        ) : !orders.data.length ? (
-          <div className="purchase-panel">
-            <h2>Você ainda não tem pedidos</h2>
-            <Button asChild>
-              <Link to="/">Explorar NFTs</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="purchase-order-list">
-            {orders.data.map((order) => (
-              <article className="purchase-panel" key={order.id}>
-                <OrderStatus order={order} />
-                <p>{order.id}</p>
-                <p>
-                  {new Date(order.createdAt).toLocaleString('pt-BR')} ·{' '}
-                  {order.snapshot.totalEth} ETH
-                </p>
-                <Button asChild variant="outline">
-                  <Link to="/orders/$orderId" params={{ orderId: order.id }}>
-                    Ver pedido
-                  </Link>
-                </Button>
-              </article>
-            ))}
-          </div>
-        )}
+    <>
+      <div className="purchase-heading">
+        <span>CONTA DO COLECIONADOR</span>
+        <h1>Meus pedidos</h1>
+        <p>Acompanhe suas compras e seus recibos.</p>
       </div>
-    </section>
+      {orders.isPending ? (
+        <p role="status">Carregando pedidos…</p>
+      ) : orders.isError ? (
+        <NetworkError
+          title="Não foi possível carregar os pedidos"
+          error={orders.error}
+          retry={() => void orders.refetch()}
+        />
+      ) : !orders.data.length ? (
+        <div className="purchase-panel">
+          <h2>Você ainda não tem pedidos</h2>
+          <Button asChild>
+            <Link to="/">Explorar NFTs</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="purchase-order-list">
+          {orders.data.map((order) => (
+            <article className="purchase-panel" key={order.id}>
+              <OrderStatus order={order} />
+              <p>{order.id}</p>
+              <p>
+                {new Date(order.createdAt).toLocaleString('pt-BR')} ·{' '}
+                {order.snapshot.totalEth} ETH
+              </p>
+              <Button asChild variant="outline">
+                <Link to="/orders/$orderId" params={{ orderId: order.id }}>
+                  Ver pedido
+                </Link>
+              </Button>
+            </article>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
 export function OrderPage({ orderId }: { orderId: string }) {

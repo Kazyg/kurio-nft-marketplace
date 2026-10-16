@@ -11,6 +11,10 @@ interface Attempt {
   payload: CreateOrderInput
   orderId?: string
 }
+export function requestNewCheckout(userId: string) {
+  sessionStorage.setItem(`kurio:new-checkout:${userId}`, 'true')
+}
+
 export function usePurchaseAttempt(userId: string) {
   const storageKey = `kurio:purchase:${userId}`
   const [attempt, setAttempt] = useState<Attempt | null>(() => {
@@ -22,6 +26,11 @@ export function usePurchaseAttempt(userId: string) {
       return null
     }
   })
+  const [checkingEntry, setCheckingEntry] = useState(
+    () =>
+      !!attempt?.orderId &&
+      sessionStorage.getItem(`kurio:new-checkout:${userId}`) === 'true',
+  )
   const [phase, setPhase] = useState<
     'idle' | 'sending' | 'recovering' | 'unknown' | 'error'
   >('idle')
@@ -29,6 +38,30 @@ export function usePurchaseAttempt(userId: string) {
   const lock = useRef(false)
   const client = useQueryClient()
   const order = useOrder(attempt?.orderId || '')
+  useEffect(() => {
+    sessionStorage.removeItem(`kurio:new-checkout:${userId}`)
+  }, [userId])
+  useEffect(() => {
+    if (!checkingEntry || !attempt?.orderId) return
+    let active = true
+    const token = getAccessToken()
+    void marketplaceApi
+      .getOrder(attempt.orderId)
+      .then((found) => {
+        if (!active || token !== getAccessToken()) return
+        if (found.status !== 'pending') {
+          localStorage.removeItem(storageKey)
+          setAttempt(null)
+        }
+        setCheckingEntry(false)
+      })
+      .catch(() => {
+        if (active && token === getAccessToken()) setCheckingEntry(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [attempt, checkingEntry, storageKey])
   function save(value: Attempt | null) {
     if (value) localStorage.setItem(storageKey, JSON.stringify(value))
     else localStorage.removeItem(storageKey)
@@ -112,6 +145,7 @@ export function usePurchaseAttempt(userId: string) {
   }
   return {
     attempt,
+    checkingEntry,
     phase,
     error,
     order,

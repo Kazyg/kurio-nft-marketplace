@@ -41,6 +41,7 @@ export function AccountSidebar({
             <Link
               key={item.label}
               to={item.to}
+              preload="intent"
               aria-current={active === item.to ? 'page' : undefined}
             >
               {content}

@@ -21,7 +21,11 @@ import type {
 import { Button } from '@/shared/ui/button'
 import { Dialog } from '@/shared/ui/dialog'
 import { NetworkError } from '@/shared/ui/network-feedback'
-import { FinancialSummary, OrderReceipt } from '@/features/orders/orders-page'
+import {
+  FinancialSummary,
+  OrderReceipt,
+  OrderConfirmationReceipt,
+} from '@/features/orders/orders-page'
 import { usePurchaseAttempt } from './use-purchase-attempt'
 import {
   CheckoutPresentation,
@@ -259,29 +263,31 @@ function CheckoutContent({
       setPreparing(false)
     }
   }
-  const review = handleSubmit(async (values) => {
-    const valid = collectorSchema.safeParse(values)
-    if (!valid.success) {
-      valid.error.issues.forEach((issue) =>
-        setFieldError(issue.path[0] as keyof Collector, {
-          message: issue.message,
-        }),
-      )
-      return
-    }
-    if (!compatible || connection !== 'connected') {
-      setError(
-        'Selecione uma carteira e conecte uma rede compatível com todos os NFTs.',
-      )
-      return
-    }
-    await refreshReview()
-  })
+  const review = async (event: FormEvent<HTMLFormElement>) => {
+    await handleSubmit(async (values) => {
+      const valid = collectorSchema.safeParse(values)
+      if (!valid.success) {
+        valid.error.issues.forEach((issue) =>
+          setFieldError(issue.path[0] as keyof Collector, {
+            message: issue.message,
+          }),
+        )
+        return
+      }
+      if (!compatible || connection !== 'connected') {
+        setError(
+          'Selecione uma carteira e conecte uma rede compatível com todos os NFTs.',
+        )
+        return
+      }
+      await finalize()
+    })(event)
+  }
   async function finalize() {
     if (
       lock.current ||
-      !reviewed ||
-      !accepted ||
+      !displayed ||
+      (changeNotice.length > 0 && !accepted) ||
       reviewStale ||
       !compatible ||
       connection !== 'connected'
@@ -295,9 +301,11 @@ function CheckoutContent({
         couponCode: coupon || undefined,
         network,
       })
-      if (fingerprint(reviewed) !== fingerprint(fresh)) {
-        setChangeNotice(changes(reviewed.snapshot, fresh.snapshot))
+      const baseline = reviewed || displayed
+      if (fingerprint(baseline) !== fingerprint(fresh)) {
+        setChangeNotice(changes(baseline.snapshot, fresh.snapshot))
         setReviewed(fresh)
+        setReviewedConnection(connectionKey)
         setAccepted(false)
         await quote.refetch()
         return
@@ -319,6 +327,12 @@ function CheckoutContent({
       lock.current = false
     }
   }
+  if (purchase.checkingEntry)
+    return (
+      <section className="purchase-page" aria-busy="true">
+        <p role="status">Preparando nova compra…</p>
+      </section>
+    )
   if (order)
     return (
       <section className="purchase-page">
@@ -362,7 +376,7 @@ function CheckoutContent({
             document.getElementById('purchase-order-details')?.focus()
           }}
         >
-          <OrderReceipt order={order} />
+          <OrderConfirmationReceipt order={order} />
           <Button onClick={() => setDismissedReceipt(order.id)}>
             Fechar recibo
           </Button>
@@ -426,6 +440,7 @@ function CheckoutContent({
   function resetReview() {
     setReviewed(null)
     setAccepted(false)
+    setChangeNotice([])
     setError('')
   }
   function selectWallet(id: string) {
@@ -706,12 +721,14 @@ function CheckoutContent({
             </div>
             <Button
               id="purchase-review"
-              aria-label="Confirmar compra: revisar valores"
               type="submit"
               form="purchase-collector"
               disabled={
                 busy ||
                 quote.isFetching ||
+                quote.isError ||
+                reviewStale ||
+                (changeNotice.length > 0 && !accepted) ||
                 !compatible ||
                 connection !== 'connected'
               }
@@ -754,58 +771,51 @@ function CheckoutContent({
           </>
         }
         review={
-          reviewed && (
-            <section className="purchase-panel" aria-label="Revisão da compra">
-              <h2>Revise antes de enviar</h2>
-              {!!changeNotice.length && (
-                <div role="alert">
-                  <strong>As condições mudaram</strong>
-                  <ul>
-                    {changeNotice.map((notice, index) => (
-                      <li key={index}>{notice}</li>
-                    ))}
-                  </ul>
-                </div>
+          (reviewStale || changeNotice.length > 0) && (
+            <div className="checkout-quote-notice" role="alert">
+              <strong>As condições mudaram</strong>
+              {changeNotice.length > 0 && (
+                <ul>
+                  {changeNotice.map((notice, index) => (
+                    <li key={index}>{notice}</li>
+                  ))}
+                </ul>
               )}
-              {reviewStale && (
-                <p role="alert">
-                  Os preços ou a disponibilidade podem ter mudado. Atualize a
-                  revisão antes de confirmar.
-                </p>
-              )}
-              <FinancialSummary snapshot={reviewed.snapshot} />
-              <label className="purchase-accept">
-                <input
-                  type="checkbox"
-                  checked={accepted && !reviewStale}
-                  disabled={reviewStale || busy}
-                  onChange={(event) => setAccepted(event.target.checked)}
-                />
-                Revisei as edições, quantidades e os valores da compra.
-              </label>
-              <div className="purchase-actions">
-                {reviewStale && (
+              {reviewStale ? (
+                <>
+                  <p>
+                    Os preços ou a disponibilidade podem ter mudado. Atualize os
+                    valores antes de confirmar.
+                  </p>
+                  <Button
+                    variant="outline"
+                    disabled={busy || quote.isFetching}
+                    onClick={() => void refreshReview()}
+                  >
+                    Atualizar valores
+                  </Button>
+                </>
+              ) : !accepted ? (
+                <>
+                  <p>
+                    Confira os novos valores no resumo da compra e aceite para
+                    continuar.
+                  </p>
                   <Button
                     variant="outline"
                     disabled={busy}
-                    onClick={() => void refreshReview()}
+                    onClick={() => setAccepted(true)}
                   >
-                    Atualizar revisão
+                    Aceitar valores atualizados
                   </Button>
-                )}
-                <Button
-                  disabled={
-                    busy ||
-                    !accepted ||
-                    reviewStale ||
-                    connection !== 'connected'
-                  }
-                  onClick={() => void finalize()}
-                >
-                  {busy ? 'Preparando compra…' : 'Confirmar compra'}
-                </Button>
-              </div>
-            </section>
+                </>
+              ) : (
+                <p>
+                  Valores atualizados aceitos. Confirme a compra para enviar o
+                  pedido.
+                </p>
+              )}
+            </div>
           )
         }
         backLink={
@@ -832,6 +842,10 @@ function CheckoutContent({
           <Button
             onClick={() => {
               setConnection('connected')
+              setReviewed(quote.data || null)
+              setReviewedConnection(connectionKey)
+              setAccepted(true)
+              setChangeNotice([])
               setConnecting(false)
             }}
           >

@@ -143,6 +143,10 @@
 .account-main {
   min-width: 0;
 }
+.account-main > .account-loading {
+  min-height: 320px;
+  color: var(--muted-foreground);
+}
 .account-main h1 {
   margin: 0 0 32px;
   font-size: 16px;

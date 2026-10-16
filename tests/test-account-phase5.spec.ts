@@ -182,13 +182,10 @@ for (const network of ['ethereum', 'polygon', 'solana'] as const)
       .getByRole('dialog', { name: 'Conectar carteira', exact: true })
       .getByRole('button', { name: 'Conectar carteira', exact: true })
       .click()
-    await page
-      .getByRole('button', {
-        name: 'Confirmar compra: revisar valores',
-        exact: true,
-      })
-      .click()
-    await page.getByRole('checkbox').check()
+    await expect(
+      page.getByRole('heading', { name: 'Revise antes de enviar' }),
+    ).toHaveCount(0)
+    await expect(page.getByRole('checkbox')).toHaveCount(0)
     await page
       .getByRole('button', { name: 'Confirmar compra', exact: true })
       .click()

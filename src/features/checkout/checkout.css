@@ -390,3 +390,175 @@
     min-height: 40px;
   }
 }
+.checkout-quote-notice {
+  padding: 16px;
+  border: 1px solid var(--primary);
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.checkout-quote-notice ul {
+  padding-left: 20px;
+}
+.purchase-confirmation .receipt-confirmation-header {
+  padding: 20px 36px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--primary);
+}
+.receipt-confirmation-header p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+.receipt-confirmation-metadata {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 0.8fr 1.3fr;
+  gap: 12px;
+  padding: 16px 36px;
+  margin: 0;
+  border-bottom: 1px solid var(--primary);
+  font-size: 14px;
+}
+.receipt-confirmation-metadata > div {
+  min-width: 0;
+}
+.receipt-confirmation-metadata dt {
+  color: var(--muted-foreground);
+  margin-bottom: 6px;
+}
+.receipt-confirmation-metadata dd {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.receipt-confirmation-details {
+  padding: 20px 44px 0;
+}
+.receipt-confirmation-details h3 {
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+.receipt-confirmation-details table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.receipt-confirmation-details th {
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  padding-bottom: 12px;
+}
+.receipt-confirmation-details th:first-child {
+  width: 60%;
+}
+.receipt-confirmation-details th:nth-child(2) {
+  width: 15%;
+  text-align: center;
+}
+.receipt-confirmation-details th:last-child,
+.receipt-confirmation-details td:last-child {
+  text-align: right;
+}
+.receipt-confirmation-details td {
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+.receipt-confirmation-details td:first-child {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-right: 8px;
+}
+.receipt-confirmation-details td:nth-child(2) {
+  text-align: center;
+}
+.receipt-confirmation-details td img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.receipt-confirmation-details td small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted-foreground);
+}
+.receipt-confirmation-totals {
+  margin: 20px 0 16px auto;
+  max-width: 321px;
+  font-size: 16px;
+}
+.receipt-confirmation-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0;
+}
+.receipt-confirmation-totals > div:last-child {
+  border-top: 1px solid var(--primary);
+  padding-top: 12px;
+  font-weight: 700;
+}
+.receipt-confirmation-totals dd {
+  margin: 0;
+  text-align: right;
+}
+.receipt-confirmation-details > a {
+  display: flex;
+  width: 100%;
+  font-size: 16px;
+}
+@media (max-width: 480px) {
+  .purchase-confirmation .receipt-confirmation-header,
+  .receipt-confirmation-metadata {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .receipt-confirmation-metadata {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .receipt-confirmation-details {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .receipt-confirmation-details td:first-child {
+    gap: 8px;
+  }
+  .receipt-confirmation-details td img {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (min-width: 481px) {
+  .receipt-confirmation-details td:nth-child(2),
+  .receipt-confirmation-details td:last-child {
+    font-size: 18px;
+    color: var(--accent);
+  }
+}
+@media (max-width: 480px) {
+  .receipt-confirmation-metadata {
+    font-size: 12px;
+  }
+  .receipt-confirmation-details table {
+    font-size: 11px;
+  }
+  .receipt-confirmation-details th,
+  .receipt-confirmation-totals,
+  .receipt-confirmation-details > a {
+    font-size: 13px;
+  }
+}
+
+.receipt-order-reference {
+  margin: 0 0 16px;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+  color: var(--muted-foreground);
+}

@@ -18,7 +18,6 @@ import { apiErrorMessage } from '@/shared/api/marketplace'
 import type { User } from '@/shared/contracts/marketplace'
 import { Button } from '@/shared/ui/button'
 import { NetworkError } from '@/shared/ui/network-feedback'
-import { AccountSidebar } from '@/shared/ui/account-sidebar'
 import './profile.css'
 
 const profileSchema = z.object({
@@ -417,27 +416,24 @@ function ProfileForm({ user }: { user: User }) {
 export function ProfilePage() {
   const profile = useProfile()
   return (
-    <section className="account-shell account-page">
-      <AccountSidebar active="/profile" />
-      <div className="account-main">
-        {profile.isPending ? (
-          <div
-            className="account-panel account-loading shimmer"
-            role="status"
-            aria-busy="true"
-          >
-            Carregando perfil…
-          </div>
-        ) : !profile.data ? (
-          <NetworkError
-            title="Não foi possível carregar o perfil"
-            error={profile.error}
-            retry={() => void profile.refetch()}
-          />
-        ) : (
-          <ProfileForm key={profile.data.id} user={profile.data} />
-        )}
-      </div>
-    </section>
+    <>
+      {profile.isPending ? (
+        <div
+          className="account-panel account-loading shimmer"
+          role="status"
+          aria-busy="true"
+        >
+          Carregando perfil…
+        </div>
+      ) : !profile.data ? (
+        <NetworkError
+          title="Não foi possível carregar o perfil"
+          error={profile.error}
+          retry={() => void profile.refetch()}
+        />
+      ) : (
+        <ProfileForm key={profile.data.id} user={profile.data} />
+      )}
+    </>
   )
 }

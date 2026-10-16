@@ -15,6 +15,7 @@ import { SessionLifecycle } from './session-lifecycle'
 import { requireSession } from './private-route'
 import { RouteError } from './route-error'
 import { RoutePending } from './route-pending'
+import { AccountLayout } from './account-layout'
 import { safeReturnTo } from '@/shared/lib/redirect'
 import {
   catalogSearchSchema,
@@ -24,12 +25,8 @@ import {
 import {
   DiagnosticsPage,
   AuthRoute,
-  FavoritesRoute,
   CartPage,
-  ProfilePage,
-  WalletsPage,
   CheckoutPage,
-  OrdersPage,
   OrderPage,
   MarketplaceRealtime,
 } from './lazy-pages'
@@ -102,30 +99,31 @@ const cartRoute = createRoute({
   path: '/cart',
   component: CartPage,
 })
-const profileRoute = createRoute({
+const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
+  id: '_account',
+  component: AccountLayout,
+})
+const profileRoute = createRoute({
+  getParentRoute: () => accountRoute,
   path: '/profile',
   beforeLoad: requireSession,
-  component: ProfilePage,
-})
+}).lazy(() => import('./profile-route.lazy').then((module) => module.Route))
 const walletsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => accountRoute,
   path: '/wallets',
   beforeLoad: requireSession,
-  component: WalletsPage,
-})
+}).lazy(() => import('./wallets-route.lazy').then((module) => module.Route))
 const favoritesRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => accountRoute,
   path: '/favorites',
   beforeLoad: requireSession,
-  component: FavoritesRoute,
-})
+}).lazy(() => import('./favorites-route.lazy').then((module) => module.Route))
 const ordersRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => accountRoute,
   path: '/orders',
   beforeLoad: requireSession,
-  component: OrdersPage,
-})
+}).lazy(() => import('./orders-route.lazy').then((module) => module.Route))
 const orderRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/orders/$orderId',
@@ -148,10 +146,12 @@ export const router = createRouter({
     loginRoute,
     registerRoute,
     cartRoute,
-    profileRoute,
-    walletsRoute,
-    favoritesRoute,
-    ordersRoute,
+    accountRoute.addChildren([
+      profileRoute,
+      walletsRoute,
+      favoritesRoute,
+      ordersRoute,
+    ]),
     orderRoute,
     checkoutRoute,
   ]),

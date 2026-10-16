@@ -54,13 +54,10 @@ async function buy(page: Page) {
   await page
     .getByRole('button', { name: 'Conectar carteira', exact: true })
     .click()
-  await page
-    .getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
-      exact: true,
-    })
-    .click()
-  await page.getByRole('checkbox').check()
+  await expect(
+    page.getByRole('heading', { name: 'Revise antes de enviar' }),
+  ).toHaveCount(0)
+  await expect(page.getByRole('checkbox')).toHaveCount(0)
   const sent = page.waitForResponse(
     (response) =>
       response.url().endsWith('/api/orders') &&
@@ -122,7 +119,7 @@ test('carrinho multirrede exige escolha explícita e preserva os demais NFTs', a
   ).toBeVisible()
   await expect(
     page.getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
+      name: 'Confirmar compra',
       exact: true,
     }),
   ).toBeDisabled()
@@ -174,13 +171,10 @@ test('troca de carteira descarta conexão e revisão e envia carteira atual', as
   await page
     .getByRole('button', { name: 'Conectar carteira', exact: true })
     .click()
-  await page
-    .getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
-      exact: true,
-    })
-    .click()
-  await page.getByRole('checkbox').check()
+  await expect(
+    page.getByRole('button', { name: 'Confirmar compra', exact: true }),
+  ).toBeEnabled()
+  expect(await request<Order[]>(page, '/orders')).toHaveLength(0)
   await page.getByRole('switch', { name: 'Usar outra carteira?' }).check()
   await page.getByLabel('Carteira cadastrada').selectOption(second.id)
   await expect(
@@ -188,7 +182,7 @@ test('troca de carteira descarta conexão e revisão e envia carteira atual', as
   ).toHaveCount(0)
   await expect(
     page.getByRole('button', {
-      name: 'Confirmar compra: revisar valores',
+      name: 'Confirmar compra',
       exact: true,
     }),
   ).toBeDisabled()
@@ -196,7 +190,7 @@ test('troca de carteira descarta conexão e revisão e envia carteira atual', as
   expect((await buy(page)).wallet.id).toBe(second.id)
 })
 
-for (const width of [390, 414, 768, 1440])
+for (const width of [375, 390, 414, 768, 1440])
   test(`checkout Figma ${width}px sem overflow, assets locais e compra`, async ({
     page,
   }) => {
@@ -289,7 +283,7 @@ for (const networks of [['polygon'], ['ethereum', 'polygon']] as Network[][])
       ).toBeVisible()
     await expect(
       page.getByRole('button', {
-        name: 'Confirmar compra: revisar valores',
+        name: 'Confirmar compra',
         exact: true,
       }),
     ).toBeDisabled()

@@ -92,13 +92,10 @@ for (const width of [390, 1440]) {
     await page
       .getByRole('button', { name: 'Conectar carteira', exact: true })
       .click()
-    await page
-      .getByRole('button', {
-        name: 'Confirmar compra: revisar valores',
-        exact: true,
-      })
-      .click()
-    await page.getByRole('checkbox', { name: /Revisei as edições/ }).check()
+    await expect(
+      page.getByRole('heading', { name: 'Revise antes de enviar' }),
+    ).toHaveCount(0)
+    await expect(page.getByRole('checkbox')).toHaveCount(0)
     await page
       .getByRole('button', { name: 'Confirmar compra', exact: true })
       .click()
@@ -289,7 +286,7 @@ for (const path of ['/', '/nfts/emerald-ape', '/checkout']) {
       ).toBeVisible()
     if (path === '/checkout')
       await expect(
-        page.getByRole('button', { name: 'Confirmar compra: revisar valores' }),
+        page.getByRole('button', { name: 'Confirmar compra', exact: true }),
       ).toBeVisible()
   })
 }

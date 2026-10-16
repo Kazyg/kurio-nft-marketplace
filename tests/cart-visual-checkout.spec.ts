@@ -209,7 +209,10 @@ for (const width of [390, 1440])
       await fillCart(page)
       const before = await mockRequest<Cart>(page, '/cart')
       await page
-        .getByRole('link', { name: 'Conectar e finalizar', exact: true })
+        .getByRole('link', {
+          name: authenticated ? 'Finalizar compra' : 'Conectar e finalizar',
+          exact: true,
+        })
         .click()
       if (!authenticated) {
         await expect(page).toHaveURL(/\/login\?redirect=%2Fcheckout/)
@@ -294,7 +297,7 @@ test('sessão expirada no carrinho retoma pagamento após login sem perder itens
     ],
   })
   await page
-    .getByRole('link', { name: 'Conectar e finalizar', exact: true })
+    .getByRole('link', { name: 'Finalizar compra', exact: true })
     .click()
   await expect(page).toHaveURL(/\/login\?redirect=%2Fcheckout/)
   await login(page)
