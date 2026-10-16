@@ -1,0 +1,9 @@
+node_modules
+dist
+bun.lock
+public/mockServiceWorker.js
+public/icons.svg
+src/assets
+playwright-report
+test-results
+reports

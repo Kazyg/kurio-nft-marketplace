@@ -1,0 +1,15 @@
+# Revisão prévia de contratos — Fase 3
+
+README, contratos REST, verificação da Fase 2, Router, hooks, sessão, handlers e repositório foram inspecionados antes da paralelização. A base já fornece login/cadastro/logout/sessão, merge de visitante, alterações de carrinho, cotação exata, perfil/avatar/senha e CRUD de carteiras. Essas operações serão reutilizadas, sem segundo estado de sessão ou carrinho.
+
+Incompatibilidade identificada: User/ProfileInput não continham nome de usuário, ENS ou edição de e-mail. A extensão mantém todos os campos/endpoints anteriores: User passa a retornar username e ens; PATCH /profile aceita username, email e ens junto da versão. Nome de usuário/e-mail são únicos; ENS é opcional e validado como nome .eth, sem resolução ou conexão blockchain. Registros IndexedDB existentes recebem os campos padrão sem reset de dados ou mudança de IDs.
+
+Rotas de integração: /login, /register, /cart, /profile, /wallets, /favorites, /orders e /checkout. As três últimas rotas privadas serão somente fronteiras preparadas quando não houver tela autorizada: favoritos pode listar os NFTs existentes; pedidos e checkout exibem indisponibilidade da etapa, sem confirmação fictícia. Login/cadastro têm apresentação modal desktop e página mobile. `redirect` deve ser um caminho local seguro para retomar a rota original.
+
+Hooks compartilhados pertencem ao coordenador: useSession/useLogin/useRegister/useLogout existentes, useCart/useAddCartItem existentes, novos useUpdateCartItem/useRemoveCartItem/useQuote/useProfile/useUpdateProfile/useChangePassword/useWallets/useAddWallet/useUpdateWallet. Os componentes não armazenam cópias de dados REST fora do cache, exceto rascunhos de formulário e cupom pretendido.
+
+Responsabilidades exclusivas: agente A features/auth; agente B features/cart; agente C features/profile e features/wallets. Cada feature mantém seu próprio CSS e testes. Router, layout, login-dialog de compatibilidade, hooks, contratos, mocks, configuração e documentação final ficam com o coordenador.
+
+O Figma MCP foi consultado para os oito node IDs indicados, porém o plano Starter retornou limite de chamadas em todos. A leitura alternativa por use_figma e screenshot também foi bloqueada. Funcionalidade e identidade visual existente podem ser reutilizadas; não há evidência para afirmar fidelidade dos novos frames. A conferência precisa de acesso MCP restaurado.
+
+Após o novo link fornecido pelo usuário (`Hfp4aJDaHzzuDlneSaFbwD`), foi executado primeiro `whoami`. A conexão reportou Guilherme (`[conta Figma anterior; e-mail omitido na entrega pública]`), equipe `[ID da equipe omitido na entrega pública]`, plano Starter, assento View. Uma única consulta de teste `get_metadata` em `0:1` da nova cópia retornou “Looks like you don't have edit access to this file.” Não foi possível confirmar que a conexão mudou para a nova conta, nem verificar os oito IDs nesse arquivo. As consultas subsequentes foram evitadas, conforme orientação do usuário para continuar os fluxos funcionais quando o acesso permanecesse bloqueado.

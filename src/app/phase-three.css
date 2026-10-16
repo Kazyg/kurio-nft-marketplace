@@ -1,0 +1,59 @@
+.account-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 28px 0;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: var(--radius);
+}
+.account-navigation a[aria-current='page'] {
+  color: var(--accent);
+}
+.account-shell {
+  padding: 32px 0 80px;
+}
+.account-shell h1 {
+  font-size: 28px;
+  margin-bottom: 24px;
+}
+.next-phase {
+  display: grid;
+  justify-items: start;
+  gap: 24px;
+}
+.auth-background {
+  pointer-events: none;
+}
+.account-entry {
+  color: var(--accent);
+}
+@media (max-width: 767px) {
+  .auth-background {
+    display: none;
+  }
+  .is-auth .site-header,
+  .is-auth .site-footer,
+  .is-auth .mobile-nav {
+    display: none;
+  }
+  .marketplace.is-auth {
+    padding-bottom: 0;
+  }
+}
+.realtime-indicator {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.realtime-indicator button {
+  color: var(--primary);
+  text-decoration: underline;
+}

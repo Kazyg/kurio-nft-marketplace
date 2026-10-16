@@ -1,0 +1,15 @@
+.git
+.vercel
+node_modules
+dist
+reports
+playwright-report
+test-results
+debug.log
+.env
+.env.*
+!.env.example
+!.env.demo
+!.env.development
+.env.local
+.env.*.local

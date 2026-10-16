@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "bun install --frozen-lockfile",
+  "buildCommand": "bun run build:demo",
+  "outputDirectory": "dist",
+  "routes": [
+    {
+      "src": "/mockServiceWorker\\.js",
+      "headers": { "Cache-Control": "no-cache" },
+      "continue": true
+    },
+    { "handle": "filesystem" },
+    {
+      "src": "/(?!assets(?:/|$)|api(?:/|$)|mockServiceWorker\\.js$).*",
+      "dest": "/index.html"
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+﻿.account-panel {
+  min-width: 0;
+}
+.account-panel p,
+.account-panel small {
+  color: #cfb28c;
+  font-size: 12px;
+}
+.account-panel h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.account-panel form {
+  display: grid;
+  gap: 24px;
+}
+.account-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 28px;
+}
+.account-panel label {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 29px;
+}
+.account-panel label b {
+  color: #f0805f;
+  font-size: 22px;
+  font-weight: 400;
+}
+.account-panel input,
+.account-panel textarea {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 9px 12px;
+  border: 1px solid #3f2319;
+  border-radius: 3px;
+  background: #140d0a;
+  color: #f5f1eb;
+  font: inherit;
+  line-height: 20px;
+}
+.account-panel textarea {
+  height: auto;
+}
+.account-panel input:disabled {
+  opacity: 0.6;
+}
+.account-panel input[aria-invalid='true'],
+.account-panel textarea[aria-invalid='true'] {
+  border-color: #f0805f;
+}
+.account-panel [role='alert'] {
+  color: #f5b2a0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.account-panel [role='status'] {
+  color: #d28a4c;
+}
+.account-ens {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 10px;
+}
+.account-ens > span {
+  border: 1px solid #3f2319;
+  border-radius: 3px;
+  height: 40px;
+  padding: 9px 10px;
+  line-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.account-ens img {
+  width: 20px;
+  height: 20px;
+}
+.profile-avatar-field {
+  display: grid;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 29px;
+}
+.account-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+  height: 50px;
+}
+.account-avatar {
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #3f2319;
+  background: #2f1d15;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+}
+.account-avatar-row > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+.account-panel .account-upload {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 98px;
+  height: 40px;
+  background: #d28a4c;
+  border-radius: 3px;
+  color: #140d0a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.account-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.account-upload:focus-within {
+  outline: 2px solid #e89b55;
+  outline-offset: 3px;
+}
+.account-text-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #f5f1eb;
+  font-size: 14px;
+}
+.account-text-button:disabled {
+  opacity: 0.5;
+}
+.profile-bio {
+  font-size: 12px;
+  color: #cfb28c;
+}
+.profile-bio summary {
+  cursor: pointer;
+}
+.profile-bio[open] label {
+  margin-top: 12px;
+}
+.profile-password {
+  margin-top: 32px;
+}
+.profile-password-fields {
+  display: grid;
+  margin-top: 24px;
+  gap: 24px;
+}
+.profile-password label {
+  max-width: 417px;
+  gap: 12px;
+  line-height: 15px;
+}
+.profile-password-input {
+  position: relative;
+  display: block;
+}
+.profile-password-input input {
+  padding-right: 52px;
+}
+.profile-password-toggle {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  width: 28px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: #f5f1eb;
+  border: 0;
+}
+.profile-password-toggle img {
+  max-width: none;
+}
+.profile-password .account-text-button {
+  font-size: 12px;
+  color: #cfb28c;
+}
+.profile-panel > button {
+  margin-top: 32px;
+  min-width: 131px;
+}
+.profile-password button[type='submit'],
+.profile-password button:not([type]) {
+  width: fit-content;
+}
+.account-loading {
+  min-height: 320px;
+}
+@media (max-width: 1000px) {
+  .account-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .account-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 550px) {
+  .account-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .account-panel input {
+    height: 44px;
+  }
+  .account-ens > span {
+    height: 44px;
+  }
+}
+.account-avatar > img {
+  width: 20px;
+  height: 20px;
+}
+.profile-panel > .profile-bio {
+  margin-top: 24px;
+}
