@@ -18,7 +18,7 @@ Pedidos persistem estados `pending`, `confirmed` ou `declined`, prazo de resolu�
 
 `nft.updated` e `order.updated` saem da outbox e passam pelo transporte real socket.io-client/Engine.IO interceptado pelo MSW. Assinaturas são autenticadas, versões antigas/duplicadas são descartadas e a reconexão revalida recursos por REST. Nenhum mock chama setters React. O bootstrap inicia MSW antes de avaliar Engine.IO; o módulo de tempo real é montado automaticamente após isso.
 
-TanStack Query utiliza stale time de60s, descarte após5min e no máximo um retry adicional para falhas de rede/5xx;4xx e mutations não são repetidos automaticamente. O pedido utiliza sua própria recuperação idempotente. [Detalhes da implementação](docs/architecture.md).
+TanStack Query utiliza stale time de 60s, descarte após 5min e no máximo um retry adicional para falhas de rede/5xx; 4xx e mutations não são repetidos automaticamente. O pedido utiliza sua própria recuperação idempotente. [Detalhes da implementação](docs/architecture.md).
 
 ## Publicação e limites
 
@@ -26,4 +26,4 @@ TanStack Query utiliza stale time de60s, descarte após5min e no máximo um retr
 
 A persistência depende de contexto seguro, IndexedDB e Web Locks. O binding Socket.IO suporta o transporte WebSocket utilizado pelo projeto; não oferece paridade integral com servidor Socket.IO. Cache e dados antigos podem ser restaurados pelo reset MSW documentado no README. Não há sincronização de dados entre dispositivos.
 
-Lighthouse anterior: Performance99 desktop,80 Home mobile e79 Detalhes mobile; demais categorias100. O carregamento inicial de JavaScript continua abaixo da meta mobile. [Medições e limitações](docs/phase-5b-verification.md). [Estado da entrega pública](docs/final-delivery.md).
+Lighthouse anterior: Performance 99 desktop, 80 Home mobile e 79 Detalhes mobile; demais categorias 100. O carregamento inicial de JavaScript continua abaixo da meta mobile. [Medições e limitações](docs/phase-5b-verification.md). [Estado da entrega pública](docs/final-delivery.md).

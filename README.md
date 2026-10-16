@@ -6,7 +6,7 @@ Stack: React, TypeScript strict, Vite, Bun, TanStack Router/Query, Axios, MSW, s
 
 ## Entrega pública
 
-Publicação e repositório estão em preparação. As URLs confirmadas, o commit entregue e a verificação pública serão registrados em [docs/final-delivery.md](docs/final-delivery.md). [Arquitetura](ARCHITECTURE.md).
+Aplicação: **[kurio-nft-marketplace-two.vercel.app](https://kurio-nft-marketplace-two.vercel.app)**. Repositório público: **[Kazyg/kurio-nft-marketplace](https://github.com/Kazyg/kurio-nft-marketplace)**. Versão de entrega: `v1.0.0-demo`. [Relatório final e validação pública](docs/final-delivery.md). [Arquitetura](ARCHITECTURE.md).
 
 `vercel.json` configura instalação Bun com lockfile, `bun run build:demo`, saída `dist`, arquivos estáticos antes do fallback SPA e Service Worker revalidado. Nenhum backend privado é necessário. API usa `/api` e Socket.IO usa a origem publicada; não configure URLs localhost no painel. Mantenha `VITE_ENABLE_MSW=true`, `VITE_API_BASE_URL=/api` e `VITE_SOCKET_URL` vazio. `.env.demo` já define a ativação; variáveis do painel prevalecem sobre o arquivo.
 
@@ -98,7 +98,7 @@ Executa 12 auditorias: Home e Detalhes, desktop e mobile, três medições por c
 - `src/index.css` e `components.json`: Tailwind 4, tokens e configuração shadcn/ui.
 - `tests/`, `scripts/`, `docs/`: testes, automação e decisões.
 
-[Organização e colaboração por features](docs/architecture.md). [Tokens extraídos diretamente do Figma MCP](docs/design-tokens.md). [Resultados da verificação](docs/verification.md). Fonte Roboto Mono servida localmente; nenhum asset temporário do Figma é usado. React Hook Form, Zod e Lucide estão disponíveis para as próximas features. Use `bun run format` para aplicar a formatação.
+[Organização e colaboração por features](docs/architecture.md). [Tokens extraídos diretamente do Figma MCP](docs/design-tokens.md). [Resultados da verificação](docs/verification.md). Fonte Roboto Mono servida localmente; nenhum asset temporário do Figma é usado. React Hook Form, Zod e Lucide são utilizados nos formulários, validações e controles existentes. Use `bun run format` para aplicar a formatação.
 
 ## Domínio e cenários da Fase 2
 
@@ -173,7 +173,7 @@ Ao favoritar no mobile, a intenção temporária da ação é retomada após a p
 
 Google/Facebook oferecem autenticação social de demonstração por REST/MSW, sem OAuth ou conexão real com os provedores. Recuperação de senha permanece indisponível, com feedback na interface. Carteiras são registros da demonstração e não conectam à blockchain. O perfil aceita nome de usuário, edição de e-mail e ENS opcional, com migração compatível dos dados existentes.
 
-[Revisão de contratos](docs/phase-3-contract-review.md) e [verificação da Fase 3](docs/phase-3-verification.md). A consulta visual dos novos frames está pendente: o MCP atingiu o limite no arquivo inicial e a nova cópia retornou falta de acesso de edição. Os tokens e assets validados nas fases anteriores foram preservados; não é alegada fidelidade visual aos novos frames ainda não acessíveis.
+[Revisão de contratos](docs/phase-3-contract-review.md) e [verificação da Fase 3](docs/phase-3-verification.md). Naquela fase, a consulta visual ficou bloqueada por cota/permissão. A conta e os frames foram acessados posteriormente nas revisões de autenticação, conta/checkout e Fase 5A, cujos relatórios abaixo documentam as referências e capturas efetivamente utilizadas.
 
 ## Socket.IO + MSW: limites e decisões
 
@@ -259,7 +259,11 @@ Artes locais com 40 variantes WebP responsivas, dimensões explícitas e carrega
 
 As 12 auditorias Lighthouse finais registraram medianas Performance/Acessibilidade/Boas práticas/SEO de **99/100/100/100** nas duas páginas desktop, **80/100/100/100** na Home mobile e **79/100/100/100** em Detalhes mobile. **Performance mobile ≥90 permanece pendente**; o comando sinaliza falha dessa meta. MSW, Socket.IO e latência padrão foram mantidos nas medições. [Relatório completo, métricas, validações e limitações](docs/phase-5b-verification.md).
 
-Validação final: typecheck, lint, format:check, build e build:demo aprovados; **242/242 em desenvolvimento**, **242/242 no preview** e **12/12 visuais**, todos sem retries. O preview final usou um worker após duas falhas de rede `ERR_NO_BUFFER_SPACE` em execuções paralelas, cujos traces foram preservados. Os arquivos das baselines estão preparados para acompanhar o próximo commit; nenhum commit foi criado automaticamente.
+Validação final: typecheck, lint, format:check, build e build:demo aprovados; **242/242 em desenvolvimento**, **242/242 no preview** e **12/12 visuais**, todos sem retries. O preview final usou um worker após duas falhas de rede `ERR_NO_BUFFER_SPACE` em execuções paralelas, cujos traces foram preservados. As baselines foram consolidadas no repositório durante a Fase 5C.
+
+## Entrega — Fase 5C
+
+Deploy Vercel com build demo e mocks ativos. Nesta fase, typecheck, lint, format:check e build:demo aprovados; **13/13 testes essenciais no preview**, executados uma única vez com um worker e zero retries. Na origem pública, **7/7 casos existentes** validaram acesso direto, mobile, Axios/MSW, compra/recibo, persistência e eventos/reconexão Socket.IO. Não foram criados testes, atualizados snapshots ou repetido Lighthouse. Limitações e evidências estão em [docs/final-delivery.md](docs/final-delivery.md).
 
 ## Versões das dependências
 
