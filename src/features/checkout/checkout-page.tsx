@@ -665,6 +665,12 @@ function CheckoutContent({
   const summary = (
     <div className="checkout-order-summary" aria-label="Resumo do checkout">
       <h2>Seus NFTs</h2>
+      {!network && (
+        <p>Selecione uma rede para ver os NFTs e os valores da compra.</p>
+      )}
+      {network && !displayed && !quote.isError && (
+        <p role="status">Carregando resumo da compra…</p>
+      )}
       <form onSubmit={applyCoupon}>
         <label htmlFor="purchase-coupon">Código promocional</label>
         <div className="purchase-coupon">

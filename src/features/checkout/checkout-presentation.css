@@ -587,3 +587,50 @@
 .checkout-network-selection strong {
   color: var(--muted-foreground);
 }
+.checkout-order-summary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-bottom: 24px;
+}
+.checkout-order-summary .purchase-financial {
+  display: contents;
+}
+.checkout-order-summary .purchase-financial ul {
+  order: 1;
+  margin-bottom: 24px;
+}
+.checkout-order-summary > form {
+  order: 2;
+}
+.checkout-order-summary .purchase-financial dl {
+  order: 3;
+}
+.checkout-order-summary > [role='status'],
+.checkout-order-summary > [role='alert'],
+.checkout-order-summary > .purchase-actions {
+  order: 4;
+}
+.checkout-order-summary .purchase-total {
+  border-top: 1px solid var(--primary);
+  padding-top: 16px;
+  font-size: 18px;
+}
+.checkout-presentation .checkout-network-selection select {
+  appearance: none;
+  color-scheme: dark;
+  background: var(--background) url('/assets/figma/account-arrow.svg') no-repeat
+    right 12px center / 12px;
+  color: var(--foreground);
+  border-color: var(--primary);
+  padding-right: 36px;
+}
+.checkout-network-selection select option {
+  background: var(--card);
+  color: var(--foreground);
+}
+.checkout-network-selection select option:checked,
+.checkout-network-selection select option:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}

@@ -80,6 +80,7 @@ export function CheckoutPresentation({
             </button>
           </div>
           {networkSelection}
+          {summary}
           {walletCards}
           {providerOptions}
           {notices}
@@ -101,7 +102,6 @@ export function CheckoutPresentation({
             <div className="checkout-collector-panel">
               {collectorFields}
               {walletSelection}
-              {summary}
             </div>
           </details>
           {review}
@@ -116,8 +116,8 @@ export function CheckoutPresentation({
             className="checkout-payment-panel"
             aria-label="Resumo do checkout"
           >
-            {summary}
             {networkSelection}
+            {summary}
             {walletCards}
             {walletSelection}
             {providerOptions}
